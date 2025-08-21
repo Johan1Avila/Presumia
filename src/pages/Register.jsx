@@ -1,44 +1,86 @@
-// pages/Register.jsx
 import { useState } from 'react';
 import { registerUser } from '../services/authService';
+import { useNavigate } from 'react-router-dom';
 
-function Register() {
+const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
-      const user = await registerUser(email, password);
-      console.log('Usuario registrado:', user);
-      alert('Registro exitoso ✅');
+      await registerUser(email, password);
+      navigate('/categories'); // 🚀 redirige al usuario después de registrarse
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      setError('Error al registrar. Verifica tu correo y contraseña.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Página de Registro</h2>
-      <form onSubmit={handleRegister}>
-        <input
-          type="email"
-          placeholder="Correo"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Registrarse</button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-96">
+        <h2 className="text-2xl font-bold mb-6 text-center">Registro</h2>
+
+        {error && (
+          <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+        )}
+
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Correo</label>
+            <br />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-400"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Contraseña</label>
+            <br />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-400"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition disabled:opacity-50"
+          >
+            {loading ? 'Creando...' : 'Registrarse'}
+          </button>
+        </form>
+
+        <p className="text-sm text-center mt-4">
+          ¿Ya tienes cuenta?{' '}
+          <span
+            onClick={() => navigate('/login')}
+            className="text-blue-500 cursor-pointer hover:underline"
+          >
+            Inicia sesión aquí
+          </span>
+        </p>
+      </div>
     </div>
   );
-}
+};
 
-export default Register;
+export default RegisterPage;
