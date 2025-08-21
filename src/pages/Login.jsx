@@ -1,44 +1,58 @@
-// pages/Login.jsx
 import { useState } from 'react';
 import { loginUser } from '../services/authService';
 
-function Login() {
+export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError(''); // limpiamos error previo
     try {
-      const user = await loginUser(email, password);
-      console.log('Usuario logueado:', user);
-      alert('Login exitoso ✅');
+      await loginUser(email, password);
+      alert('✅ Inicio de sesión exitoso');
+      // Aquí podrías redirigir al usuario a /categories
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
+      // Manejamos los errores más comunes de Firebase
+      if (err.code === 'auth/invalid-credential') {
+        setError('❌ Usuario o contraseña incorrectos');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('⚠️ El correo no es válido');
+      } else if (err.code === 'auth/missing-password') {
+        setError('⚠️ La contraseña es obligatoria');
+      } else {
+        setError('⚠️ Ocurrió un error inesperado');
+      }
     }
   };
 
   return (
-    <div>
-      <h2>Página de Login</h2>
+    <div style={{ maxWidth: '400px', margin: 'auto' }}>
+      <h2>Iniciar Sesión</h2>
       <form onSubmit={handleLogin}>
         <input
           type="email"
-          placeholder="Correo"
+          placeholder="Correo electrónico"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
+        <br />
         <input
           type="password"
           placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
+        <br />
         <button type="submit">Ingresar</button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {/* Mostramos el error si existe */}
+      {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
     </div>
   );
 }
-
-export default Login;
