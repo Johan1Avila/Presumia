@@ -16,12 +16,12 @@ export async function registerUser(email, password) {
     );
     return userCredential.user; // devuelve el usuario creado
   } catch (error) {
-    throw new Error(error.message); // lanza el error para manejarlo en el componente
+    throw Error; // lanza el error para manejarlo en el componente
   }
 }
 
 // Iniciar sesión
-export async function loginUser(email, password) {
+export const loginUser = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(
       auth,
@@ -30,9 +30,9 @@ export async function loginUser(email, password) {
     );
     return userCredential.user;
   } catch (error) {
-    throw error;
+    throw error; // importante: relanzar el error
   }
-}
+};
 
 // Cerrar sesión
 export const logoutUser = async () => {
