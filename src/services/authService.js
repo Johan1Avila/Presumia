@@ -7,18 +7,18 @@ import {
 import { auth } from '../firebase/firebaseAuth';
 
 // registrar un usuario
-export async function registerUser(email, password) {
+export const registerUser = async (email, password) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
       password,
     );
-    return userCredential.user; // devuelve el usuario creado
+    return userCredential.user;
   } catch (error) {
-    throw Error; // lanza el error para manejarlo en el componente
+    throw error;
   }
-}
+};
 
 // Iniciar sesión
 export const loginUser = async (email, password) => {

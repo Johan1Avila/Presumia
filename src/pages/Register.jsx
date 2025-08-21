@@ -19,8 +19,21 @@ const RegisterPage = () => {
       await registerUser(email, password);
       navigate('/categories'); // 🚀 redirige al usuario después de registrarse
     } catch (err) {
-      console.error(err);
-      setError('Error al registrar. Verifica tu correo y contraseña.');
+      console.error('🔥 Error completo:', JSON.stringify(err, null, 2));
+      console.error('🔥 Error objeto crudo:', err);
+
+      const errorCode = err.code || '';
+      const errorMessage = err.message || '';
+
+      if (errorCode === 'auth/email-already-in-use') {
+        setError('Este correo ya está registrado. Intenta con otro.');
+      } else if (errorCode === 'auth/invalid-email') {
+        setError('El correo no es válido.');
+      } else if (errorCode === 'auth/weak-password') {
+        setError('La contraseña es muy débil. Usa al menos 6 caracteres.');
+      } else {
+        setError('Error al registrar. Intenta de nuevo.');
+      }
     } finally {
       setLoading(false);
     }

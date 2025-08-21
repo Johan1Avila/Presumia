@@ -6,29 +6,39 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(''); // limpiamos error previo
+    setError('');
+    setLoading(true);
+
     try {
       await loginUser(email, password);
       alert('✅ Inicio de sesión exitoso');
       navigate('/categories');
-      // Aquí podrías redirigir al usuario a /categories
     } catch (err) {
-      console.error(err.message);
-      // Manejamos los errores más comunes de Firebase
+      console.error('Error en login:', err);
+
       if (err.code === 'auth/invalid-credential') {
         setError('❌ Usuario o contraseña incorrectos');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('⚠️ El correo no es válido');
-      } else if (err.code === 'auth/missing-password') {
-        setError('⚠️ La contraseña es obligatoria');
-      } else {
-        setError('⚠️ Ocurrió un error inesperado');
       }
+      if (!email) {
+        setError('⚠️ El correo es obligatorio');
+        return;
+      }
+      if (!/\S+@\S+\.\S+/.test(email)) {
+        setError('⚠️ El correo no es válido');
+        return;
+      }
+      if (!password) {
+        setError('⚠️ La contraseña es obligatoria');
+        return;
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,10 +62,11 @@ export default function LoginPage() {
           required
         />
         <br />
-        <button type="submit">Ingresar</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Ingresando...' : 'Ingresar'}
+        </button>
       </form>
 
-      {/* Mostramos el error si existe */}
       {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
     </div>
   );
