@@ -1,4 +1,5 @@
-import { initializeApp } from 'firebase/app';
+// src/firebase/firebaseconfig.js
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -14,10 +15,16 @@ const firebaseConfig = {
   measurementId: 'G-KL2M9E2LWG',
 };
 
-const app = initializeApp(firebaseConfig);
+// Verificación de app inicializada
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-const analytics = getAnalytics(app);
+let analytics;
+if (typeof window !== 'undefined') {
+  analytics = getAnalytics(app);
+}
+
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+
 export default app;
