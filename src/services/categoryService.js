@@ -1,8 +1,12 @@
-// src/services/categoryService.js
-import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebaseconfig';
 
-// Crear una categoría
+/**
+ * Crear una nueva categoría
+ * @param {string} userId - ID del usuario autenticado
+ * @param {string} name - Nombre de la categoría
+ * @param {string} description - Descripción de la categoría
+ */
 export const createCategory = async (userId, name, description) => {
   try {
     const docRef = await addDoc(collection(db, 'categories'), {
@@ -11,14 +15,17 @@ export const createCategory = async (userId, name, description) => {
       description,
       createdAt: new Date(),
     });
-    return { id: docRef.id, name, description };
+    return docRef.id;
   } catch (error) {
-    console.error('Error al crear categoría:', error);
+    console.error('Error creando categoría:', error);
     throw error;
   }
 };
 
-// Obtener todas las categorías de un usuario
+/**
+ * Obtener todas las categorías de un usuario
+ * @param {string} userId - ID del usuario autenticado
+ */
 export const getCategories = async (userId) => {
   try {
     const q = query(
@@ -26,13 +33,13 @@ export const getCategories = async (userId) => {
       where('userId', '==', userId),
     );
     const querySnapshot = await getDocs(q);
-    const categories = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const categories = [];
+    querySnapshot.forEach((doc) => {
+      categories.push({ id: doc.id, ...doc.data() });
+    });
     return categories;
   } catch (error) {
-    console.error('Error al obtener categorías:', error);
+    console.error('Error obteniendo categorías:', error);
     throw error;
   }
 };
