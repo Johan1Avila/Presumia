@@ -4,10 +4,11 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
-  subscribeCategories, // función en tiempo real
+  subscribeCategories,
 } from '../services/categoryService';
+import CategoryCard from '../components/CategoryCard';
 
-function Categories() {
+export default function Categories() {
   const { user } = useAuth();
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState('');
@@ -25,13 +26,14 @@ function Categories() {
       return alert('Completa ambos campos');
 
     if (editingId) {
-      // Editar
+      // Actualización optimista
       setCategories(
         categories.map((cat) =>
           cat.id === editingId ? { ...cat, name, description } : cat,
         ),
       );
       setEditingId(null);
+
       try {
         await updateCategory(editingId, name, description);
       } catch (error) {
@@ -39,9 +41,10 @@ function Categories() {
         alert('No se pudo actualizar la categoría.');
       }
     } else {
-      // Agregar nueva categoría optimista
       const tempId = Date.now().toString();
       setCategories([...categories, { id: tempId, name, description }]);
+      setName('');
+      setDescription('');
 
       try {
         const firestoreId = await createCategory(user.uid, name, description);
@@ -117,18 +120,63 @@ function Categories() {
       ) : (
         <ul>
           {categories.map((cat) => (
-            <li key={cat.id}>
-              <strong>{cat.name}</strong>: {cat.description}{' '}
-              <button onClick={() => handleEditClick(cat)}>Editar</button>{' '}
-              <button onClick={() => handleDeleteClick(cat.id)}>
-                Eliminar
-              </button>
-            </li>
+            <CategoryCard
+              key={cat.id}
+              category={cat}
+              onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
+            />
           ))}
         </ul>
       )}
     </div>
   );
 }
+/*
+┌────────────────────┐
+│   Categories.jsx   │
+│ (Página de categorías) │
+│--------------------│
+│ - useAuth()        │
+│ - useState()       │
+│ - useEffect()      │
+│ - handleAddOrEditCategory() │
+│ - handleEditClick() │
+│ - handleDeleteClick() │
+│--------------------│
+│ Renderiza lista de │
+│ CategoryCard.jsx   │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│  CategoryCard.jsx  │
+│ (Componente)       │
+│--------------------│
+│ Props recibidas:   │
+│ - category         │
+│ - onEdit           │
+│ - onDelete         │
+│--------------------│
+│ Botones Editar y   │
+│ Eliminar llaman a  │
+│ las funciones      │
+│ recibidas via props│
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ categoryService.js │
+│--------------------│
+│ Funciones:         │
+│ - createCategory() │
+│ - updateCategory() │
+│ - deleteCategory() │
+│ - subscribeCategories() │
+│--------------------│
+│ Acceso a Firestore │
+│ para CRUD en tiempo│
+│ real o asíncrono   │
+└────────────────────┘
 
-export default Categories;
+*/
