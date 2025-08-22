@@ -1,14 +1,16 @@
+import { useEffect } from 'react';
+import { getCategories } from '../firebase/firebaseFirestore';
+
 function Categories() {
-  return (
-    <div>
-      <h2>Categorías</h2>
-      <ul>
-        <li>Categoría 1</li>
-        <li>Categoría 2</li>
-        <li>Categoría 3</li>
-      </ul>
-    </div>
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getCategories();
+      console.log('Categorías:', data);
+    };
+    fetchData();
+  }, []);
+
+  return <h1>Categorías</h1>;
 }
 
 export default Categories;
