@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   createCategory,
-  getCategories,
   updateCategory,
   deleteCategory,
+  subscribeCategories, // función en tiempo real
 } from '../services/categoryService';
 
 function Categories() {
@@ -12,57 +12,48 @@ function Categories() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [editingId, setEditingId] = useState(null); // para editar
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
-    if (user) fetchCategories();
-  }, [user]);
-
-  const fetchCategories = async () => {
     if (!user) return;
-    setLoading(true);
-    try {
-      const data = await getCategories(user.uid);
-      setCategories(data);
-    } catch (error) {
-      console.error(error);
-      alert('No se pudieron cargar las categorías.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const unsubscribe = subscribeCategories(user.uid, setCategories);
+    return () => unsubscribe();
+  }, [user]);
 
   const handleAddOrEditCategory = async () => {
     if (!name.trim() || !description.trim())
       return alert('Completa ambos campos');
 
     if (editingId) {
-      // Actualizar localmente primero
+      // Editar
       setCategories(
         categories.map((cat) =>
           cat.id === editingId ? { ...cat, name, description } : cat,
         ),
       );
       setEditingId(null);
-
       try {
-        await updateCategory(editingId, name, description); // actualización real en Firestore
+        await updateCategory(editingId, name, description);
       } catch (error) {
         console.error(error);
-        alert('No se pudo actualizar la categoría en la base de datos.');
-        fetchCategories(); // opcional: recargar lista si falla
+        alert('No se pudo actualizar la categoría.');
       }
     } else {
-      // Crear nueva categoría
-      const nuevaCat = { id: Date.now().toString(), name, description };
-      setCategories([...categories, nuevaCat]); // mostrar inmediatamente
+      // Agregar nueva categoría optimista
+      const tempId = Date.now().toString();
+      setCategories([...categories, { id: tempId, name, description }]);
+
       try {
-        await createCategory(user.uid, name, description); // guardar en Firestore
+        const firestoreId = await createCategory(user.uid, name, description);
+        setCategories((prev) =>
+          prev.map((cat) =>
+            cat.id === tempId ? { ...cat, id: firestoreId } : cat,
+          ),
+        );
       } catch (error) {
         console.error(error);
         alert('No se pudo crear la categoría en Firestore.');
-        setCategories(categories); // revertir si falla
+        setCategories((prev) => prev.filter((cat) => cat.id !== tempId));
       }
     }
 
@@ -78,16 +69,12 @@ function Categories() {
 
   const handleDeleteClick = async (catId) => {
     if (!window.confirm('¿Estás seguro de eliminar esta categoría?')) return;
-
-    // Actualizar UI primero
-    setCategories(categories.filter((cat) => cat.id !== catId));
-
+    setCategories(categories.filter((cat) => cat.id !== catId)); // Optimista
     try {
-      await deleteCategory(catId); // eliminación real en Firestore
+      await deleteCategory(catId);
     } catch (error) {
       console.error(error);
-      alert('No se pudo eliminar la categoría en la base de datos.');
-      fetchCategories(); // opcional: recargar lista si falla
+      alert('No se pudo eliminar la categoría.');
     }
   };
 
@@ -125,9 +112,7 @@ function Categories() {
         )}
       </div>
 
-      {loading ? (
-        <p>Cargando categorías...</p>
-      ) : categories.length === 0 ? (
+      {categories.length === 0 ? (
         <p>No hay categorías todavía.</p>
       ) : (
         <ul>
