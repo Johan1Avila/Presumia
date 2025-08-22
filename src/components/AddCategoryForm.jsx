@@ -1,36 +1,21 @@
-import { useEffect, useState } from 'react';
-
 export default function AddCategoryForm({
+  name,
+  setName,
+  description,
+  setDescription,
+  onSubmit,
   editingCategory,
-  onAddCategory,
-  onUpdateCategory,
+  onCancelEdit,
 }) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-
-  useEffect(() => {
-    if (editingCategory) {
-      setName(editingCategory.name);
-      setDescription(editingCategory.description);
-    } else {
-      setName('');
-      setDescription('');
-    }
-  }, [editingCategory]);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !description.trim())
-      return alert('Completa ambos campos');
+    await onSubmit();
+  };
 
-    if (editingCategory) {
-      onUpdateCategory(editingCategory.id, name, description);
-    } else {
-      onAddCategory(name, description);
-    }
-
+  const handleCancel = () => {
     setName('');
     setDescription('');
+    onCancelEdit();
   };
 
   return (
@@ -53,14 +38,7 @@ export default function AddCategoryForm({
         {editingCategory ? 'Actualizar' : 'Agregar'}
       </button>
       {editingCategory && (
-        <button
-          type="button"
-          onClick={() => {
-            setName('');
-            setDescription('');
-            onUpdateCategory(null); // cancelar edición
-          }}
-        >
+        <button type="button" onClick={handleCancel}>
           Cancelar
         </button>
       )}
