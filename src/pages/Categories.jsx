@@ -7,66 +7,80 @@ function Categories() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Cargar categorías del usuario al montar
   useEffect(() => {
-    if (!user) return;
-    const fetchData = async () => {
-      const data = await getCategories(user.uid);
-      setCategories(data);
-    };
-    fetchData();
+    if (user) {
+      fetchCategories();
+    }
   }, [user]);
 
-  const handleCreateCategory = async (e) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      alert('El nombre es obligatorio');
-      return;
-    }
-
+  const fetchCategories = async () => {
+    if (!user) return;
+    setLoading(true);
     try {
-      await createCategory(user.uid, name, description);
-      setName('');
-      setDescription('');
       const data = await getCategories(user.uid);
       setCategories(data);
     } catch (error) {
-      console.error('Error creando categoría:', error);
+      console.error('Error al traer categorías:', error);
+      alert('No se pudieron cargar las categorías.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!name.trim() || !description.trim())
+      return alert('Completa ambos campos');
+
+    // Actualizar localmente primero
+    const nuevaCat = { id: Date.now().toString(), name, description };
+    setCategories([...categories, nuevaCat]);
+
+    setName('');
+    setDescription('');
+
+    try {
+      await createCategory(user.uid, name, description); // escritura real en Firestore
+    } catch (error) {
+      console.error(error);
+      alert('No se pudo crear en Firestore');
+      // Si falla, remover categoría local
+      setCategories(categories);
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div>
       <h1>Categorías</h1>
-
-      {/* Formulario para agregar categorías */}
-      <form onSubmit={handleCreateCategory} style={{ marginBottom: '20px' }}>
+      <div>
         <input
           type="text"
-          placeholder="Nombre"
+          placeholder="Nombre de la categoría"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ marginRight: '10px' }}
+          autoComplete="off"
         />
         <input
           type="text"
           placeholder="Descripción"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          style={{ marginRight: '10px' }}
+          autoComplete="off"
         />
-        <button type="submit">Agregar Categoría</button>
-      </form>
+        <button onClick={handleAddCategory}>Agregar</button>
+      </div>
 
-      {/* Lista de categorías */}
-      {categories.length === 0 ? (
-        <p>No tienes categorías aún.</p>
+      {/* Mostrar mensaje mientras carga */}
+      {loading ? (
+        <p>Cargando categorías...</p>
+      ) : categories.length === 0 ? (
+        <p>No hay categorías todavía.</p>
       ) : (
         <ul>
           {categories.map((cat) => (
             <li key={cat.id}>
-              <strong>{cat.name}</strong> - {cat.description}
+              <strong>{cat.name}</strong>: {cat.description}
             </li>
           ))}
         </ul>
