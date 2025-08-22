@@ -1,5 +1,15 @@
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/firebaseconfig';
+// src/services/categoryService.js
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from 'firebase/firestore';
+import { db } from '../firebase/firebaseConfig';
 
 /**
  * Crear una nueva categoría
@@ -40,6 +50,40 @@ export const getCategories = async (userId) => {
     return categories;
   } catch (error) {
     console.error('Error obteniendo categorías:', error);
+    throw error;
+  }
+};
+
+/**
+ * Actualizar una categoría existente
+ * @param {string} categoryId - ID de la categoría a actualizar
+ * @param {string} name - Nuevo nombre de la categoría
+ * @param {string} description - Nueva descripción
+ */
+export const updateCategory = async (categoryId, name, description) => {
+  try {
+    const categoryRef = doc(db, 'categories', categoryId);
+    await updateDoc(categoryRef, {
+      name,
+      description,
+      updatedAt: new Date(),
+    });
+  } catch (error) {
+    console.error('Error actualizando categoría:', error);
+    throw error;
+  }
+};
+
+/**
+ * Eliminar una categoría
+ * @param {string} categoryId - ID de la categoría a eliminar
+ */
+export const deleteCategory = async (categoryId) => {
+  try {
+    const categoryRef = doc(db, 'categories', categoryId);
+    await deleteDoc(categoryRef);
+  } catch (error) {
+    console.error('Error eliminando categoría:', error);
     throw error;
   }
 };
