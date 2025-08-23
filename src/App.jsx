@@ -5,17 +5,17 @@ import Categories from './pages/Categories';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import CategoryDetail from './pages/CategoryDetail';
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
       <div style={{ padding: '20px' }}>
         <h1>Presumia</h1>
 
-        {/* Navbar importado */}
+        {/* Navbar */}
         <Navbar />
 
-        {/* Rutas */}
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -27,10 +27,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/category/:id"
+            element={
+              <ProtectedRoute>
+                <CategoryDetail />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </div>
     </AuthProvider>
   );
 }
-
-export default App;

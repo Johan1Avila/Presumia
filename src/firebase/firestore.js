@@ -7,6 +7,8 @@ import {
   getDoc,
   updateDoc,
   deleteDoc,
+  query,
+  where,
 } from 'firebase/firestore';
 
 // Colección Categorías
@@ -28,6 +30,39 @@ export const getCategoryById = async (id) => {
   const docRef = doc(db, 'categories', id);
   const snapshot = await getDoc(docRef);
   return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
+};
+
+// ✅ Obtener ítems por categoría
+export const getItemsByCategory = async (categoryId) => {
+  try {
+    const q = query(
+      collection(db, 'items'),
+      where('categoryId', '==', categoryId),
+    );
+    const querySnapshot = await getDocs(q);
+    const items = [];
+    querySnapshot.forEach((doc) => {
+      items.push({ id: doc.id, ...doc.data() });
+    });
+    return items;
+  } catch (error) {
+    console.error('Error obteniendo ítems:', error);
+    return [];
+  }
+};
+
+// ✅ Agregar ítem a una categoría
+export const addItemToCategory = async (categoryId, itemData) => {
+  try {
+    const docRef = await addDoc(collection(db, 'items'), {
+      categoryId,
+      ...itemData,
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error agregando ítem:', error);
+    throw error;
+  }
 };
 
 // ✅ Actualizar categoría

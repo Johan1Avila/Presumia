@@ -6,7 +6,7 @@ import {
   deleteCategory,
   subscribeCategories,
 } from '../services/categoryService';
-import CategoryCard from '../components/CategoryCard';
+import { Link } from 'react-router-dom'; // ✅ IMPORTANTE
 import AddCategoryForm from '../components/AddCategoryForm';
 
 export default function Categories() {
@@ -16,6 +16,7 @@ export default function Categories() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
+  // ✅ Suscripción en tiempo real
   useEffect(() => {
     if (!user) return;
     const unsubscribe = subscribeCategories(user.uid, setCategories);
@@ -28,13 +29,13 @@ export default function Categories() {
     }
 
     if (editingCategory) {
-      // Actualización optimista
-      setCategories(
-        categories.map((cat) =>
+      // ✅ Edición optimista
+      setCategories((prev) =>
+        prev.map((cat) =>
           cat.id === editingCategory.id ? { ...cat, name, description } : cat,
         ),
       );
-      setEditingCategory(null); // Salir del modo edición
+      setEditingCategory(null);
       setName('');
       setDescription('');
 
@@ -45,9 +46,9 @@ export default function Categories() {
         alert('No se pudo actualizar la categoría.');
       }
     } else {
-      // Crear nueva categoría optimista
+      // ✅ Creación optimista
       const tempId = Date.now().toString();
-      setCategories([...categories, { id: tempId, name, description }]);
+      setCategories((prev) => [...prev, { id: tempId, name, description }]);
       setName('');
       setDescription('');
 
@@ -61,7 +62,6 @@ export default function Categories() {
       } catch (error) {
         console.error(error);
         alert('No se pudo crear la categoría en Firestore.');
-        // Eliminar temporal si falla
         setCategories((prev) => prev.filter((cat) => cat.id !== tempId));
       }
     }
@@ -81,7 +81,7 @@ export default function Categories() {
 
   const handleDeleteClick = async (catId) => {
     if (!window.confirm('¿Estás seguro de eliminar esta categoría?')) return;
-    setCategories(categories.filter((cat) => cat.id !== catId));
+    setCategories((prev) => prev.filter((cat) => cat.id !== catId));
 
     try {
       await deleteCategory(catId);
@@ -110,12 +110,24 @@ export default function Categories() {
       ) : (
         <ul>
           {categories.map((cat) => (
-            <CategoryCard
+            <div
               key={cat.id}
-              category={cat}
-              onEdit={handleEditClick}
-              onDelete={handleDeleteClick}
-            />
+              style={{
+                border: '1px solid #ccc',
+                padding: '8px',
+                margin: '8px',
+              }}
+            >
+              <h3>{cat.name}</h3>
+              <p>{cat.description}</p>
+              <Link to={`/category/${cat.id}`}>
+                <button>Ver detalles</button>
+              </Link>
+              <button onClick={() => handleEditClick(cat)}>Editar</button>
+              <button onClick={() => handleDeleteClick(cat.id)}>
+                Eliminar
+              </button>
+            </div>
           ))}
         </ul>
       )}

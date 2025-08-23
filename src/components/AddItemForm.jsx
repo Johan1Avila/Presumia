@@ -1,26 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { uploadImage } from '../firebase/storageHelper';
 
-export default function AddItemForm({ categories, onAddItem }) {
+export default function AddItemForm({ onAddItem }) {
   const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [imageFile, setImageFile] = useState(null);
+  const [value, setValue] = useState('');
+  const [image, setImage] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name || !price || !categoryId) {
-      alert('Por favor completa todos los campos.');
-      return;
+    let imageUrl = '';
+    if (image) {
+      imageUrl = await uploadImage(image);
     }
 
-    await onAddItem({ name, price, categoryId, imageFile });
+    const newItem = {
+      name,
+      value: parseFloat(value),
+      imageUrl,
+    };
 
-    // Limpiar inputs
+    onAddItem(newItem);
     setName('');
-    setPrice('');
-    setCategoryId('');
-    setImageFile(null);
+    setValue('');
+    setImage(null);
   };
 
   return (
@@ -30,33 +33,20 @@ export default function AddItemForm({ categories, onAddItem }) {
         placeholder="Nombre del ítem"
         value={name}
         onChange={(e) => setName(e.target.value)}
+        required
       />
-
       <input
         type="number"
         placeholder="Valor"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        required
       />
-
-      <select
-        value={categoryId}
-        onChange={(e) => setCategoryId(e.target.value)}
-      >
-        <option value="">Selecciona una categoría</option>
-        {categories.map((cat) => (
-          <option key={cat.id} value={cat.id}>
-            {cat.name}
-          </option>
-        ))}
-      </select>
-
       <input
         type="file"
         accept="image/*"
-        onChange={(e) => setImageFile(e.target.files[0])}
+        onChange={(e) => setImage(e.target.files[0])}
       />
-
       <button type="submit">Agregar Ítem</button>
     </form>
   );
