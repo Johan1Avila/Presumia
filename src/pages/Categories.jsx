@@ -8,7 +8,6 @@ import {
 } from '../services/categoryService';
 import CategoryCard from '../components/CategoryCard';
 import AddCategoryForm from '../components/AddCategoryForm';
-import { uploadImage } from '../firebase/firebaseStorage';
 
 export default function Categories() {
   const { user } = useAuth();
@@ -66,20 +65,6 @@ export default function Categories() {
         setCategories((prev) => prev.filter((cat) => cat.id !== tempId));
       }
     }
-  };
-  const handleAddCategory = async () => {
-    let imageUrl = '';
-    if (selectedFile) {
-      imageUrl = await uploadImage(selectedFile, 'categories');
-    }
-
-    // Aquí llamas a tu función que guarda en Firestore
-    await createCategory({ name, description, imageUrl });
-
-    // Limpiar inputs
-    setName('');
-    setDescription('');
-    setSelectedFile(null);
   };
 
   const handleEditClick = (category) => {

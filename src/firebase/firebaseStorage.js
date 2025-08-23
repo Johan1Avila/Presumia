@@ -1,17 +1,14 @@
 // src/firebase/firebaseStorage.js
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import app from './firebaseConfig'; // ✅ import default
+import { storage } from './firebaseconfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-const storage = getStorage(app);
-
-export const uploadImage = async (file, folderName) => {
+export const uploadImage = async (file, path = 'images/') => {
   try {
-    const storageRef = ref(storage, `${folderName}/${file.name}`);
+    const storageRef = ref(storage, `${path}${file.name}`);
     await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    return url;
+    return await getDownloadURL(storageRef);
   } catch (error) {
-    console.error('Error al subir la imagen:', error);
+    console.error('Error al subir imagen:', error);
     throw error;
   }
 };
