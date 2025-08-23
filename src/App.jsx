@@ -2,7 +2,6 @@ import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Categories from './pages/Categories';
-import Items from './pages/Items';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
@@ -25,14 +24,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <Categories />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/items/:categoryId"
-            element={
-              <ProtectedRoute>
-                <Items />
               </ProtectedRoute>
             }
           />
