@@ -3,6 +3,8 @@ export default function AddCategoryForm({
   setName,
   description,
   setDescription,
+  selectedFile,
+  setSelectedFile,
   onSubmit,
   editingCategory,
   onCancelEdit,
@@ -34,6 +36,11 @@ export default function AddCategoryForm({
         onChange={(e) => setDescription(e.target.value)}
         autoComplete="off"
       />
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setSelectedFile(e.target.files[0])}
+      />
       <button type="submit">
         {editingCategory ? 'Actualizar' : 'Agregar'}
       </button>
@@ -41,6 +48,13 @@ export default function AddCategoryForm({
         <button type="button" onClick={handleCancel}>
           Cancelar
         </button>
+      )}
+      {selectedFile && (
+        <img
+          src={URL.createObjectURL(selectedFile)}
+          alt="Previsualización"
+          style={{ width: '100px', marginTop: '10px' }}
+        />
       )}
     </form>
   );
